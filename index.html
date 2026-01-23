@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Love Hover Text</title>
 <style>
     html, body {
@@ -34,14 +35,100 @@
         text-shadow: 0 0 20px #ff9ecf, 0 0 40px #ff4d9d;
         transform: scale(1.08);
     }
+    @media (max-width: 768px) {
+    .text {
+        top: 6%;
+        font-size: 24px;
+        letter-spacing: 1px;
+        padding: 0 10px;
+    }
+}
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, #1a001f, #000);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.login-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 30px 25px;
+    border-radius: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 30px #ff4d9d;
+    width: 85%;
+    max-width: 320px;
+}
+
+.login-box h2 {
+    color: #ff9ecf;
+    margin-bottom: 20px;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #ff4d9d;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.login-box button:hover {
+    background: #ff1a75;
+}
+
 </style>
 </head>
 <body>
+
+<div class="overlay" id="overlay">
+  <div class="login-box">
+    <h2>Masukkan Namamu 💕</h2>
+    <input type="text" id="nameInput" placeholder="Nama kamu..." />
+    <button id="startBtn">Masuk</button>
+  </div>
+</div>
 
 <div class="text" id="loveText">I Love You 💖</div>
 <canvas id="canvas"></canvas>
 
 <script>
+const overlay = document.getElementById("overlay");
+const startBtn = document.getElementById("startBtn");
+const nameInput = document.getElementById("nameInput");
+const loveText = document.getElementById("loveText");
+
+let userName = "";
+let toggled = false;
+
+startBtn.addEventListener("click", () => {
+    userName = nameInput.value.trim();
+    if (userName === "") {
+        alert("Namanya diisi dulu dong 💕");
+        return;
+    }
+    overlay.style.display = "none";
+    loveText.textContent = `I Love You, ${userName} 💖`;
+});
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -51,17 +138,6 @@ canvas.height = innerHeight;
 window.addEventListener("resize", () => {
     canvas.width = innerWidth;
     canvas.height = innerHeight;
-});
-
-// 💌 TEKS BERUBAH SAAT HOVER
-const loveText = document.getElementById("loveText");
-
-loveText.addEventListener("mouseenter", () => {
-    loveText.textContent = "You Are My Everything 💕";
-});
-
-loveText.addEventListener("mouseleave", () => {
-    loveText.textContent = "I Love You 💖";
 });
 
 // 🖱️ posisi mouse
@@ -113,7 +189,8 @@ class FallingHeart {
     }
     draw() { drawHeart(this.x, this.y, this.size, this.color); }
 }
-for (let i = 0; i < 70; i++) rainHearts.push(new FallingHeart());
+for (let i = 0; i < (innerWidth < 768 ? 40 : 70); i++)
+    rainHearts.push(new FallingHeart());
 
 // 💕 trail hati mouse
 const trail = [];
@@ -146,7 +223,9 @@ function animate() {
     rainHearts.forEach(h => { h.update(); h.draw(); });
 
     const scale = 0.9 + Math.sin(pulse) * 0.08;
-    drawHeart(mouse.x, mouse.y, scale * 6, "#ff4d9d");
+    const isMobile = window.innerWidth < 768;
+drawHeart(mouse.x, mouse.y, scale * (isMobile ? 4 : 6), "#ff4d9d");
+
 
     trail.push(new MouseHeart(mouse.x, mouse.y));
     trail.forEach((h, i) => {
