@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Love Hover Text</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: radial-gradient(circle at top, #1a001f, #000);
+        overflow: hidden;
+        height: 100%;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    canvas { display: block; }
+
+    .text {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        top: 8%;
+        font-size: 42px;
+        color: #ff9ecf;
+        text-shadow: 0 0 15px #ff4d9d, 0 0 30px #ff1a75;
+        letter-spacing: 3px;
+        transition: all 0.6s ease;
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    .text:hover {
+        color: #fff;
+        text-shadow: 0 0 20px #ff9ecf, 0 0 40px #ff4d9d;
+        transform: scale(1.08);
+    }
+</style>
+</head>
+<body>
+
+<div class="text" id="loveText">I Love You 💖</div>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+window.addEventListener("resize", () => {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+});
+
+// 💌 TEKS BERUBAH SAAT HOVER
+const loveText = document.getElementById("loveText");
+
+loveText.addEventListener("mouseenter", () => {
+    loveText.textContent = "You Are My Everything 💕";
+});
+
+loveText.addEventListener("mouseleave", () => {
+    loveText.textContent = "I Love You 💖";
+});
+
+// 🖱️ posisi mouse
+const mouse = { x: innerWidth / 2, y: innerHeight / 2 };
+window.addEventListener("mousemove", e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+
+// posisi touch
+window.addEventListener("touchmove", e => {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+});
+
+
+// ❤️ fungsi gambar hati
+function drawHeart(x, y, size, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size, size);
+    ctx.beginPath();
+    for (let i = 0; i <= Math.PI * 2; i += 0.05) {
+        const px = 16 * Math.pow(Math.sin(i), 3);
+        const py = -(13 * Math.cos(i) - 5 * Math.cos(2*i) - 2 * Math.cos(3*i) - Math.cos(4*i));
+        ctx.lineTo(px, py);
+    }
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+}
+
+// 🌧️ hujan hati
+const rainHearts = [];
+class FallingHeart {
+    constructor() { this.reset(); }
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * -canvas.height;
+        this.size = Math.random() * 0.35 + 0.15;
+        this.speed = Math.random() * 1.5 + 0.5;
+        this.color = `hsl(${330 + Math.random() * 30}, 100%, 70%)`;
+    }
+    update() {
+        this.y += this.speed;
+        if (this.y > canvas.height + 20) this.reset();
+    }
+    draw() { drawHeart(this.x, this.y, this.size, this.color); }
+}
+for (let i = 0; i < 70; i++) rainHearts.push(new FallingHeart());
+
+// 💕 trail hati mouse
+const trail = [];
+class MouseHeart {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 0.3 + 0.2;
+        this.alpha = 1;
+        this.color = `hsl(${330 + Math.random() * 20}, 100%, 65%)`;
+    }
+    update() {
+        this.y -= 0.3;
+        this.alpha -= 0.02;
+    }
+    draw() {
+        ctx.globalAlpha = this.alpha;
+        drawHeart(this.x, this.y, this.size, this.color);
+        ctx.globalAlpha = 1;
+    }
+}
+
+// ❤️ hati utama
+let pulse = 0;
+
+function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    rainHearts.forEach(h => { h.update(); h.draw(); });
+
+    const scale = 0.9 + Math.sin(pulse) * 0.08;
+    drawHeart(mouse.x, mouse.y, scale * 6, "#ff4d9d");
+
+    trail.push(new MouseHeart(mouse.x, mouse.y));
+    trail.forEach((h, i) => {
+        h.update();
+        h.draw();
+        if (h.alpha <= 0) trail.splice(i, 1);
+    });
+
+    pulse += 0.05;
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
