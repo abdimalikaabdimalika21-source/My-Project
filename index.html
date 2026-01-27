@@ -3,8 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ff1a75">
+
+<!-- iOS fullscreen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Love Hover Text</title>
 <style>
+    html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
     html, body {
         margin: 0;
         padding: 0;
@@ -14,10 +28,16 @@
         font-family: 'Segoe UI', sans-serif;
     }
 
-    canvas { display: block; }
+    canvas {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none; 
+}
 
     .text {
-        position: absolute;
+        position: fixed;
         width: 100%;
         text-align: center;
         top: 8%;
@@ -46,7 +66,7 @@
 .overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle, #1a001f, #000);
+    background: radial-gradient(circle at center, #2a002f, #000);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -54,45 +74,85 @@
 }
 
 .login-box {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 30px 25px;
-    border-radius: 20px;
+    background: rgba(20, 0, 25, 0.85);
+    padding: 26px 22px 24px;
+    border-radius: 22px;
     text-align: center;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 30px #ff4d9d;
-    width: 85%;
+    backdrop-filter: blur(14px);
+    box-shadow:
+        0 0 25px rgba(255, 77, 157, 0.6),
+        inset 0 0 20px rgba(255, 255, 255, 0.05);
+    width: 90%;
     max-width: 320px;
+    box-sizing: border-box;
+    animation: pop 0.6s ease;
 }
+
+@keyframes pop {
+    0% {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 
 .login-box h2 {
     color: #ff9ecf;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .login-box input {
     width: 100%;
-    padding: 12px;
-    border-radius: 12px;
+    padding: 14px;
+    border-radius: 14px;
     border: none;
     outline: none;
     font-size: 16px;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.login-box input::placeholder {
+    color: #999;
 }
 
 .login-box button {
     width: 100%;
-    padding: 12px;
-    border-radius: 12px;
+    padding: 14px;
+    border-radius: 14px;
     border: none;
-    background: #ff4d9d;
+    background: linear-gradient(135deg, #ff4d9d, #ff1a75);
     color: #fff;
     font-size: 16px;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.3s ease;
+    box-sizing: border-box;
 }
 
-.login-box button:hover {
-    background: #ff1a75;
+.login-box button:active {
+    transform: scale(0.96);
+}
+
+@media (max-width: 480px) {
+    .login-box h2 {
+        font-size: 20px;
+    }
+
+    .login-box input,
+    .login-box button {
+        box-sizing: border-box;
+    }
+    .login-box input:focus {
+    box-shadow: 0 0 0 2px rgba(255, 77, 157, 0.35);
+    }
 }
 
 </style>
@@ -117,16 +177,42 @@ const nameInput = document.getElementById("nameInput");
 const loveText = document.getElementById("loveText");
 
 let userName = "";
-let toggled = false;
+let flip = false;
 
-startBtn.addEventListener("click", () => {
+function masuk() {
     userName = nameInput.value.trim();
+
+    if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock("portrait").catch(()=>{});
+    }
+
     if (userName === "") {
         alert("Namanya diisi dulu dong 💕");
         return;
     }
+
+    localStorage.setItem("namaCinta", userName);
     overlay.style.display = "none";
     loveText.textContent = `I Love You, ${userName} 💖`;
+}
+
+// klik tombol
+startBtn.addEventListener("click", masuk);
+
+// tekan ENTER
+nameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        masuk();
+    }
+});
+
+// auto isi nama kalau sudah pernah masuk
+window.addEventListener("load", () => {
+    const savedName = localStorage.getItem("namaCinta");
+    if (savedName) {
+        userName = savedName;
+        nameInput.value = savedName;
+    }
 });
 
 const canvas = document.getElementById("canvas");
@@ -239,6 +325,44 @@ drawHeart(mouse.x, mouse.y, scale * (isMobile ? 4 : 6), "#ff4d9d");
 }
 
 animate();
+</script>
+
+<script>
+function toggleLoveText() {
+    flip = !flip;
+    loveText.textContent = flip
+        ? `Aku Sayang Kamu, ${userName} 💕`
+        : `I Love You, ${userName} 💖`;
+}
+
+// laptop
+loveText.addEventListener("click", toggleLoveText);
+
+// HP
+loveText.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    toggleLoveText();
+});
+</script>
+
+<script>
+function requestFullscreen() {
+    const el = document.documentElement;
+
+    if (el.requestFullscreen) {
+        el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen(); // Safari
+    } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen(); // IE
+    }
+}
+
+// aktifkan saat user klik tombol masuk
+startBtn.addEventListener("click", () => {
+    requestFullscreen();
+    masuk();
+});
 </script>
 
 </body>
